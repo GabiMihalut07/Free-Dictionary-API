@@ -2,6 +2,10 @@ document.addEventListener('DOMContentLoaded', (event) => {
     $('#historyModal').on('show.bs.modal', function (event) {
         displayStoredWords();
     });
+
+    $('#favoritesModal').on('show.bs.modal', function (event) {
+        displayFavorites();
+    });
 });
 
 async function searchWord() {
@@ -39,6 +43,12 @@ function displayResult(data) {
     wordTitle.className = 'card-title';
     wordTitle.textContent = data.word;
     cardBody.appendChild(wordTitle);
+
+    const favButton = document.createElement('button');
+    favButton.className = 'btn btn-warning';
+    favButton.textContent = 'Add to Favorites';
+    favButton.onclick = () => addToFavorites(data);
+    cardBody.appendChild(favButton);
 
     if (data.phonetics && data.phonetics.length > 0) {
         const phoneticsDiv = document.createElement('div');
@@ -108,4 +118,35 @@ function displayStoredWords() {
         listItem.textContent = wordData.word;
         storedWordsList.appendChild(listItem);
     });
+}
+
+function addToFavorites(wordData) {
+    let favorites = JSON.parse(localStorage.getItem('favorites')) || [];
+    if (!favorites.some(favorite => favorite.word === wordData.word)) {
+        favorites.push(wordData);
+        localStorage.setItem('favorites', JSON.stringify(favorites));
+    }
+}
+
+function displayFavorites() {
+    const favorites = JSON.parse(localStorage.getItem('favorites')) || [];
+    const favoritesList = document.getElementById('favoritesList');
+    favoritesList.innerHTML = '';
+
+    favorites.forEach(wordData => {
+        const listItem = document.createElement('li');
+        listItem.className = 'list-group-item';
+        listItem.textContent = wordData.word;
+        listItem.onclick = () => displayFavoriteWord(wordData);
+        listItem.style.cursor = 'pointer';
+        listItem.onmouseover = () => listItem.style.backgroundColor = 'lightgreen';
+        listItem.onmouseout = () => listItem.style.backgroundColor = '';
+        favoritesList.appendChild(listItem);
+    });
+}
+
+function displayFavoriteWord(wordData) {
+    const resultDiv = document.getElementById('result');
+    resultDiv.innerHTML = '';
+    displayResult(wordData);
 }
